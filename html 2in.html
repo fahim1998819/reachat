@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini ChatGPT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chatBox {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: scroll;
+        }
+        #inputField {
+            width: 80%;
+            padding: 10px;
+        }
+        #sendButton {
+            padding: 10px;
+        }
+        .message {
+            margin: 10px 0;
+        }
+        .userMessage {
+            color: blue;
+        }
+        .botMessage {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chatBox"></div>
+
+    <input type="text" id="inputField" placeholder="Type your message...">
+    <button id="sendButton">Send</button>
+
+    <script>
+        // Simple chatbot responses
+        const responses = {
+            "hello": { "en": "Hi! How can I help you?", "bn": "হ্যালো! আমি কিভাবে সাহায্য করতে পারি?" },
+            "how are you": { "en": "I'm doing great, thank you!", "bn": "আমি ভাল আছি, ধন্যবাদ!" },
+            "bye": { "en": "Goodbye! Have a nice day!", "bn": "বিদায়! সুদিন কাটুক!" },
+        };
+
+        // Function to detect language using Google Translate API
+        function detectLanguage(text) {
+            return new Promise((resolve) => {
+                // Use a language detection API like Google Translate API (free version)
+                const url = `https://translation.googleapis.com/language/translate/v2/detect?key=YOUR_GOOGLE_API_KEY&q=${text}`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        const language = data.data.detections[0][0].language;
+                        resolve(language);
+                    })
+                    .catch(() => resolve('en')); // Default to English if error occurs
+            });
+        }
+
+        // Function to handle sending a message and getting a response
+        document.getElementById('sendButton').onclick = async function() {
+            const inputField = document.getElementById('inputField');
+            const userMessage = inputField.value.trim();
+
+            if (userMessage === "") return; // Do nothing if input is empty
+
+            // Add user message to chat box
+            document.getElementById('chatBox').innerHTML += `<div class="message userMessage">${userMessage}</div>`;
+
+            // Detect language of the user's input
+            const detectedLanguage = await detectLanguage(userMessage);
+
+            // Find response based on the detected language
+            const responseMessage = responses[userMessage.toLowerCase()]
+                ? responses[userMessage.toLowerCase()][detectedLanguage]
+                : "Sorry, I didn't understand that.";
+
+            // Add bot response to chat box
+            document.getElementById('chatBox').innerHTML += `<div class="message botMessage">${responseMessage}</div>`;
+
+            // Clear input field
+            inputField.value = '';
+            document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight; // Auto scroll down
+        };
+    </script>
+
+</body>
+</html>
